@@ -12,14 +12,14 @@ int main(int argc, char* argv[])
 {
   if (argc != 3)
   {
-    ErrorMessage("help: %s <PID> <DLL PATH>", argv[0]);
+    ErrorMessage("help: %s <PROCESS NAME> <DLL PATH>", argv[0]);
     return 1;
   }
 
   DWORD pid = GetPIDByProcessName(argv[1]);
   if (pid == 0)
   {
-    ErrorMessage("Invalid PID. Please enter a valid number.");
+    ErrorMessage("Process not found.");
     return 1;
   }
 
