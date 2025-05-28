@@ -1,9 +1,11 @@
 #include <windows.h>
+#include <tlhelp32.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
 
 int InjectDLL(DWORD pid, const char* dllPath);
+DWORD GetPIDByProcessName(const char* processName);
 void ErrorMessage(const char* message, ...);
 
 int main(int argc, char* argv[])
@@ -14,7 +16,7 @@ int main(int argc, char* argv[])
     return 1;
   }
 
-  DWORD pid = atoi(argv[1]);
+  DWORD pid = GetPIDByProcessName(argv[1]);
   if (pid == 0)
   {
     ErrorMessage("Invalid PID. Please enter a valid number.");
@@ -60,6 +62,35 @@ int InjectDLL(DWORD pid, const char* dllPath)
   CloseHandle(hProcess);
 
   printf("DLL injected successfully!\n");
+  return 0;
+}
+
+DWORD GetPIDByProcessName(const char* processName)
+{
+  PROCESSENTRY32 pe32;
+  pe32.dwSize = sizeof(PROCESSENTRY32);
+
+  HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+  if (hSnapshot == INVALID_HANDLE_VALUE)
+  {
+    printf("Failed to create snapshot.\n");
+    return 0;
+  }
+
+  if (Process32First(hSnapshot, &pe32))
+  {
+    do
+    {
+      if (_stricmp(pe32.szExeFile, processName) == 0)
+      {
+        DWORD pid = pe32.th32ProcessID;
+        CloseHandle(hSnapshot);
+        return pid;
+      }
+    } while (Process32Next(hSnapshot, &pe32));
+  }
+
+  CloseHandle(hSnapshot);
   return 0;
 }
 
